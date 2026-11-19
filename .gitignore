@@ -1,0 +1,43 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environment files and credentials (NEVER COMMIT)
+.env
+.env.production
+.env.local
+*.pem
+*.key
+*.crt
+
+# Production persistence directories
+poshan_data/
+poshan_data/*
+audit_logs/
+audit_logs/*
+data/
+data/*
+
+# Local SQLite databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace

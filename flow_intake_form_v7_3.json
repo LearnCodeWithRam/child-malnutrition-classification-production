@@ -1,0 +1,157 @@
+{
+  "version": "7.3",
+  "data_api_version": "3.0",
+  "routing_model": {
+    "FIELD_ASSESSMENT_SCREEN": []
+  },
+  "screens": [
+    {
+      "id": "FIELD_ASSESSMENT_SCREEN",
+      "title": "Poshan Field Assessment",
+      "terminal": true,
+      "data": {
+        "max_date": {
+          "type": "string",
+          "__example__": "2026-11-04"
+        }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "assessment_form",
+            "children": [
+              {
+                "type": "TextHeading",
+                "text": "Poshan Child Health Screening"
+              },
+              {
+                "type": "TextCaption",
+                "text": "Frontline anthropometric intake for Anganwadi / ASHA workers / అంగన్‌వాడీ / ఆషా కార్మికుల కోసం ఫ్రంట్‌లైన్ శరీర మాపకాలు తీసుకోవడం."
+              },
+              {
+                "type": "TextInput",
+                "name": "awc_code",
+                "label": "AWC Code/కేంద్ర కోడ్",
+                "required": true,
+                "input-type": "number",
+                "min-chars": 11,
+                "max-chars": 11,
+                "helper-text": "11 digits e.g. 28548190419"
+              },
+              {
+                "type": "TextInput",
+                "name": "serial_number",
+                "label": "Serial Number/క్రమ సంఖ్య",
+                "required": true,
+                "input-type": "text",
+                "helper-text": "e.g. 1, 48, or SN-048"
+              },
+              {
+                "type": "DatePicker",
+                "name": "date_of_birth",
+                "label": "Date of Birth/జననం తేది",
+                "required": true,
+                "max-date": "${data.max_date}",
+                "helper-text": "No future dates allowed"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "gender",
+                "label": "Gender/లింగం",
+                "required": true,
+                "data-source": [
+                  {
+                    "id": "Female",
+                    "title": "Female / బాలిక"
+                  },
+                  {
+                    "id": "Male",
+                    "title": "Male / బాలుడు"
+                  }
+                ]
+              },
+              {
+                "type": "TextInput",
+                "name": "height_cm",
+                "label": "Height/ఎత్తు (cm)",
+                "required": true,
+                "min-chars": 1,
+                "max-chars": 4,
+                "input-type": "number",
+                "helper-text": "e.g., 78.5"
+              },
+              {
+                "type": "TextInput",
+                "name": "weight_kg",
+                "label": "Weight/బరువు (kg)",
+                "min-chars": 1,
+                "max-chars": 4,
+                "required": true,
+                "input-type": "number",
+                "helper-text": "e.g., 9.8"
+              },
+              {
+                "type": "TextInput",
+                "name": "muac_cm",
+                "label": "MUAC (cm)",
+                "min-chars": 1,
+                "max-chars": 4,
+                "required": true,
+                "input-type": "number",
+                "helper-text": "e.g., 13.5 (no limit)"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "nutritional_status",
+                "label": "Nutritional Status / పోషక స్థితి",
+                "required": true,
+                "data-source": [
+                  {
+                    "id": "normal",
+                    "title": "Normal / సాధారణం"
+                  },
+                  {
+                    "id": "mam",
+                    "title": "MAM / అమ్మ"
+                  },
+                  {
+                    "id": "sam",
+                    "title": "SAM / సామ్"
+                  }
+                ]
+              },
+              {
+                "type": "PhotoPicker",
+                "name": "left_arm_image",
+                "label": "Left Arm Photo (Child Lying Down) / ఎడమ చేయి ఫోటో (పిల్లవాడు/పిల్ల పడుకుని ఉన్నప్పుడు)",
+                "photo-source": "camera_gallery",
+                "min-uploaded-photos": 1,
+                "max-uploaded-photos": 1
+              },
+              {
+                "type": "Footer",
+                "label": "Submit Assessment",
+                "on-click-action": {
+                  "name": "complete",
+                  "payload": {
+                    "awc_code": "${form.awc_code}",
+                    "serial_number": "${form.serial_number}",
+                    "date_of_birth": "${form.date_of_birth}",
+                    "gender": "${form.gender}",
+                    "height_cm": "${form.height_cm}",
+                    "weight_kg": "${form.weight_kg}",
+                    "muac_cm": "${form.muac_cm}",
+                    "nutritional_status": "${form.nutritional_status}",
+                    "left_arm_image": "${form.left_arm_image}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

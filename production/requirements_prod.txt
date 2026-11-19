@@ -1,0 +1,25 @@
+# Production Python Dependencies for Poshan AI Stack
+fastapi==0.139.0
+uvicorn[standard]==0.51.0
+pydantic==2.13.4
+SQLAlchemy==2.0.51
+psycopg2-binary==2.9.9
+celery==5.6.3
+redis>=6.1.0
+requests==2.32.5
+python-multipart==0.0.32
+cryptography==50.0.0
+numpy>=1.22.0
+pandas>=1.4.0
+scipy>=1.8.0
+scikit-learn>=1.0.0
+xgboost>=1.6.0
+opencv-python-headless==4.14.0.94
+mediapipe==1.0.1
+matplotlib>=3.5.0
+pillow>=9.0.0
+gunicorn==26.2.0
+zipstream-ng>=1.7.1
+joblib>=1.2.0
+flower>=2.0.1
+

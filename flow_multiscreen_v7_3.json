@@ -1,0 +1,383 @@
+{
+  "version": "7.3",
+  "data_api_version": "3.0",
+  "routing_model": {
+    "DEMOGRAPHICS_SCREEN": [
+      "MEASUREMENTS_SCREEN"
+    ],
+    "MEASUREMENTS_SCREEN": [
+      "PHOTO_CAPTURE_SCREEN"
+    ],
+    "PHOTO_CAPTURE_SCREEN": []
+  },
+  "screens": [
+    {
+      "id": "DEMOGRAPHICS_SCREEN",
+      "title": "పోషణ్ పిల్లల నమోదు / Child Intake",
+      "data": {
+        "max_date": {
+          "type": "string",
+          "__example__": "2026-11-16"
+        },
+        "awc_code": {
+          "type": "string",
+          "__example__": "28548190419"
+        },
+        "serial_number": {
+          "type": "string",
+          "__example__": "SN-048"
+        },
+        "date_of_birth": {
+          "type": "string",
+          "__example__": "2024-05-12"
+        },
+        "gender": {
+          "type": "string",
+          "__example__": "Female"
+        },
+        "height_cm": {
+          "type": "string",
+          "__example__": "78.5"
+        },
+        "weight_kg": {
+          "type": "string",
+          "__example__": "9.8"
+        },
+        "muac_cm": {
+          "type": "string",
+          "__example__": "12.5"
+        },
+        "nutritional_status": {
+          "type": "string",
+          "__example__": "mam"
+        }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "demographics_form",
+            "init-values": {
+              "awc_code": "${data.awc_code}",
+              "serial_number": "${data.serial_number}",
+              "date_of_birth": "${data.date_of_birth}",
+              "gender": "${data.gender}"
+            },
+            "children": [
+              {
+                "type": "TextHeading",
+                "text": "పోషణ్ పిల్లల ఆరోగ్య తనిఖీ / Child Screening"
+              },
+              {
+                "type": "TextCaption",
+                "text": "దశ 1/3: అంగన్వాడీ / ఆషా కార్మికుల కోసం పిల్లల గుర్తింపు వివరాలు / Screen 1 of 3: Child Identification"
+              },
+              {
+                "type": "TextInput",
+                "name": "awc_code",
+                "label": "కేంద్ర కోడ్ / AWC Code",
+                "required": true,
+                "input-type": "text",
+                "min-chars": 11,
+                "max-chars": 11,
+                "helper-text": "11 అంకెలు ఉదా: 28548190419 / 11 digits"
+              },
+              {
+                "type": "TextInput",
+                "name": "serial_number",
+                "label": "క్రమ సంఖ్య / Roll Number",
+                "required": true,
+                "input-type": "text",
+                "helper-text": "ఉదా: 1, 48, లేదా SN-048 / e.g. 1, 48"
+              },
+              {
+                "type": "DatePicker",
+                "name": "date_of_birth",
+                "label": "జననం తేది / Date of Birth",
+                "required": true,
+                "max-date": "${data.max_date}",
+                "helper-text": "భవిష్యత్ తేదీలు అనుమతించబడవు / No future dates"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "gender",
+                "label": "లింగం / Gender",
+                "required": true,
+                "data-source": [
+                  {
+                    "id": "Female",
+                    "title": "బాలిక / Female"
+                  },
+                  {
+                    "id": "Male",
+                    "title": "బాలుడు / Male"
+                  }
+                ]
+              },
+              {
+                "type": "Footer",
+                "label": "కొనసాగించండి / Continue",
+                "on-click-action": {
+                  "name": "navigate",
+                  "next": {
+                    "type": "screen",
+                    "name": "MEASUREMENTS_SCREEN"
+                  },
+                  "payload": {
+                    "awc_code": "${form.awc_code}",
+                    "serial_number": "${form.serial_number}",
+                    "date_of_birth": "${form.date_of_birth}",
+                    "gender": "${form.gender}",
+                    "height_cm": "${data.height_cm}",
+                    "weight_kg": "${data.weight_kg}",
+                    "muac_cm": "${data.muac_cm}",
+                    "nutritional_status": "${data.nutritional_status}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "MEASUREMENTS_SCREEN",
+      "title": "శరీర కొలతలు / Measurements",
+      "data": {
+        "awc_code": {
+          "type": "string",
+          "__example__": "28548190419"
+        },
+        "serial_number": {
+          "type": "string",
+          "__example__": "SN-048"
+        },
+        "date_of_birth": {
+          "type": "string",
+          "__example__": "2024-05-12"
+        },
+        "gender": {
+          "type": "string",
+          "__example__": "Female"
+        },
+        "height_cm": {
+          "type": "string",
+          "__example__": "78.5"
+        },
+        "weight_kg": {
+          "type": "string",
+          "__example__": "9.8"
+        },
+        "muac_cm": {
+          "type": "string",
+          "__example__": "12.5"
+        },
+        "nutritional_status": {
+          "type": "string",
+          "__example__": "mam"
+        }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "measurements_form",
+            "init-values": {
+              "height_cm": "${data.height_cm}",
+              "weight_kg": "${data.weight_kg}",
+              "muac_cm": "${data.muac_cm}",
+              "nutritional_status": "${data.nutritional_status}"
+            },
+            "children": [
+              {
+                "type": "TextHeading",
+                "text": "శరీర కొలతలు / Anthropometry"
+              },
+              {
+                "type": "TextCaption",
+                "text": "దశ 2/3: టేప్ కొలతలు నమోదు చేయండి / Screen 2 of 3: Tape measurements"
+              },
+              {
+                "type": "TextInput",
+                "name": "height_cm",
+                "label": "ఎత్తు / Height (cm)",
+                "required": true,
+                "min-chars": 1,
+                "max-chars": 5,
+                "input-type": "text",
+                "helper-text": "ఉదా: 78.5 / e.g., 78.5"
+              },
+              {
+                "type": "TextInput",
+                "name": "weight_kg",
+                "label": "బరువు / Weight (kg)",
+                "min-chars": 1,
+                "max-chars": 5,
+                "required": true,
+                "input-type": "text",
+                "helper-text": "ఉదా: 9.8 / e.g., 9.8"
+              },
+              {
+                "type": "TextInput",
+                "name": "muac_cm",
+                "label": "చేయి చుట్టుకొలత / MUAC (cm)",
+                "min-chars": 1,
+                "max-chars": 5,
+                "required": true,
+                "input-type": "text",
+                "helper-text": "ఉదా: 12.5 / e.g., 12.5"
+              },
+              {
+                "type": "RadioButtonsGroup",
+                "name": "nutritional_status",
+                "label": "పోషక స్థితి / Nutritional Status",
+                "required": true,
+                "data-source": [
+                  {
+                    "id": "normal",
+                    "title": "సాధారణం / Normal"
+                  },
+                  {
+                    "id": "mam",
+                    "title": "మితమైన లోపం / MAM"
+                  },
+                  {
+                    "id": "sam",
+                    "title": "తీవ్ర లోపం / SAM"
+                  }
+                ]
+              },
+              {
+                "type": "Footer",
+                "label": "కొనసాగించండి / Continue",
+                "on-click-action": {
+                  "name": "navigate",
+                  "next": {
+                    "type": "screen",
+                    "name": "PHOTO_CAPTURE_SCREEN"
+                  },
+                  "payload": {
+                    "awc_code": "${data.awc_code}",
+                    "serial_number": "${data.serial_number}",
+                    "date_of_birth": "${data.date_of_birth}",
+                    "gender": "${data.gender}",
+                    "height_cm": "${form.height_cm}",
+                    "weight_kg": "${form.weight_kg}",
+                    "muac_cm": "${form.muac_cm}",
+                    "nutritional_status": "${form.nutritional_status}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "PHOTO_CAPTURE_SCREEN",
+      "title": "ఎడమ చేయి ఫోటో / Arm Photo",
+      "terminal": true,
+      "data": {
+        "awc_code": {
+          "type": "string",
+          "__example__": "28548190419"
+        },
+        "serial_number": {
+          "type": "string",
+          "__example__": "SN-048"
+        },
+        "date_of_birth": {
+          "type": "string",
+          "__example__": "2024-05-12"
+        },
+        "gender": {
+          "type": "string",
+          "__example__": "Female"
+        },
+        "height_cm": {
+          "type": "string",
+          "__example__": "78.5"
+        },
+        "weight_kg": {
+          "type": "string",
+          "__example__": "9.8"
+        },
+        "muac_cm": {
+          "type": "string",
+          "__example__": "12.5"
+        },
+        "nutritional_status": {
+          "type": "string",
+          "__example__": "mam"
+        }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Form",
+            "name": "photo_form",
+            "children": [
+              {
+                "type": "TextHeading",
+                "text": "పిల్లల ఎడమ చేయి ఫోటో / Child Arm Photo"
+              },
+              {
+                "type": "TextCaption",
+                "text": "దశ 3/3: పిల్లల ఎడమ చేయి ఫోటో తీయండి / Screen 3 of 3: Child arm photo capture"
+              },
+              {
+                "type": "TextSubheading",
+                "text": "నమోదు చేసిన వివరాల సమీక్ష / Review of selections"
+              },
+              {
+                "type": "TextBody",
+                "text": "`'కేంద్ర కోడ్ (AWC): ' ${data.awc_code} ' | క్రమ సంఖ్య (SN): ' ${data.serial_number}`"
+              },
+              {
+                "type": "TextBody",
+                "text": "`'జననం తేది (DOB): ' ${data.date_of_birth} ' (' ${data.gender} ')'`"
+              },
+              {
+                "type": "TextBody",
+                "text": "`'ఎత్తు: ' ${data.height_cm} ' cm | బరువు: ' ${data.weight_kg} ' kg | MUAC: ' ${data.muac_cm} ' cm'`"
+              },
+              {
+                "type": "PhotoPicker",
+                "name": "left_arm_image",
+                "label": "ఎడమ చేయి ఫోటో తీయండి / Click Left Arm Photo",
+                "photo-source": "camera_gallery",
+                "min-uploaded-photos": 1,
+                "max-uploaded-photos": 1
+              },
+              {
+                "type": "TextCaption",
+                "text": "📸 ఫోటో మార్గదర్శకాలు / Guidelines:\n\n1. పిల్లవాడు పడుకుని ఉండగా ఎడమ చేయి నిటారుగా ఉంచి ఫోటో తీయండి\n(Take the photo while the child is lying down with the left arm straight)\n\n2. మంచి వెలుతురులో ఫోటో తీయండి. ఫోన్ను 30-50 సెం.మీ దూరంలో ఉంచండి\n(Take the photo in good light. Hold the phone 30-50 cm away)\n\n3. చేయి, భుజం, చంక లేదా మోచేతిని కప్పే బట్టలు, గాజులు, తాళ్లు, రిబ్బన్లు తొలగించండి\n(Remove any clothes, bangles, threads, or ribbons covering the arm, wrist, shoulder, armpit, or elbow)"
+              },
+              {
+                "type": "Footer",
+                "label": "సమర్పించండి / Submit",
+                "on-click-action": {
+                  "name": "complete",
+                  "payload": {
+                    "awc_code": "${data.awc_code}",
+                    "serial_number": "${data.serial_number}",
+                    "date_of_birth": "${data.date_of_birth}",
+                    "gender": "${data.gender}",
+                    "height_cm": "${data.height_cm}",
+                    "weight_kg": "${data.weight_kg}",
+                    "muac_cm": "${data.muac_cm}",
+                    "nutritional_status": "${data.nutritional_status}",
+                    "left_arm_image": "${form.left_arm_image}"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

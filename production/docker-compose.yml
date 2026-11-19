@@ -1,0 +1,179 @@
+version: '3.8'
+
+services:
+  # 1. PostgreSQL Database with Persistent Host Mount
+  postgres:
+    image: postgres:15-alpine
+    container_name: poshan_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-poshan_db}
+      POSTGRES_USER: ${POSTGRES_USER:-poshan_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-poshan_secure_password_2026}
+    volumes:
+      # Persistent bind mount: Uses local ./poshan_data on Windows or /var/lib/poshan_data on Linux VPS
+      - ${POSHAN_DATA_DIR:-./poshan_data}/postgres:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-poshan_user} -d ${POSTGRES_DB:-poshan_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - poshan_network
+
+  # 2. Redis Message Broker with Persistent AOF Mount
+  redis:
+    image: redis:7-alpine
+    container_name: poshan_redis
+    restart: always
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-poshan_redis_pass_2026}
+    volumes:
+      - ${POSHAN_DATA_DIR:-./poshan_data}/redis:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-poshan_redis_pass_2026}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - poshan_network
+
+  # 3. FastAPI Webhook & API Gateway (Gunicorn + 4 Uvicorn Workers)
+  web:
+    build:
+      context: ..
+      dockerfile: production/Dockerfile
+    container_name: poshan_web
+    restart: always
+    command: gunicorn production.app_prod:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --timeout 120 --graceful-timeout 30 --keep-alive 65
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-poshan_user}:${POSTGRES_PASSWORD:-poshan_secure_password_2026}@postgres:5432/${POSTGRES_DB:-poshan_db}
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD:-poshan_redis_pass_2026}@redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD:-poshan_redis_pass_2026}@redis:6379/1
+      - RAW_PHOTOS_DIR=/app/data/raw_photos
+      - ADMIN_API_KEY=${ADMIN_API_KEY:-poshan_admin_secret_2026}
+      - META_VERIFY_TOKEN=${META_VERIFY_TOKEN:-poshan_secret_webhook_token_2026}
+      - META_PHONE_NUMBER_ID=${META_PHONE_NUMBER_ID:-}
+      - META_ACCESS_TOKEN=${META_ACCESS_TOKEN:-}
+      - META_APP_SECRET=${META_APP_SECRET:-}
+      - META_FLOW_ID=${META_FLOW_ID:-}
+      - PUBLIC_APP_URL=${PUBLIC_APP_URL:-http://localhost:8000}
+      # Thread isolation to prevent multi-threading lock contention
+      - OMP_NUM_THREADS=1
+      - OPENBLAS_NUM_THREADS=1
+      - MKL_NUM_THREADS=1
+      - VECLIB_MAXIMUM_THREADS=1
+      - NUMEXPR_NUM_THREADS=1
+    ports:
+      - "8000:8000"
+    volumes:
+      # Live code bind mount: changes on host are immediately active inside container
+      - ..:/app
+      # Persistent mount for raw uncompressed photos on NVMe SSD
+      - ${POSHAN_DATA_DIR:-./poshan_data}/photos:/app/data/raw_photos
+      # Persistent mount for generated audit logs & risk gauge graphics
+      - ${POSHAN_DATA_DIR:-./poshan_data}/audit_logs:/app/audit_logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - poshan_network
+
+  # 4. Celery Worker Pool (Concurrency 4 matching 4 CPU cores)
+  celery_worker:
+    build:
+      context: ..
+      dockerfile: production/Dockerfile
+    container_name: poshan_celery_worker
+    restart: always
+    command: celery -A production.celery_app.celery worker --loglevel=info -c 4 -E -Q poshan_screening,poshan_notifications
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-poshan_user}:${POSTGRES_PASSWORD:-poshan_secure_password_2026}@postgres:5432/${POSTGRES_DB:-poshan_db}
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD:-poshan_redis_pass_2026}@redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD:-poshan_redis_pass_2026}@redis:6379/1
+      - RAW_PHOTOS_DIR=/app/data/raw_photos
+      - ADMIN_API_KEY=${ADMIN_API_KEY:-poshan_admin_secret_2026}
+      - META_PHONE_NUMBER_ID=${META_PHONE_NUMBER_ID:-}
+      - META_ACCESS_TOKEN=${META_ACCESS_TOKEN:-}
+      - PUBLIC_APP_URL=${PUBLIC_APP_URL:-http://localhost:8000}
+      # Thread isolation for Celery worker processes
+      - OMP_NUM_THREADS=1
+      - OPENBLAS_NUM_THREADS=1
+      - MKL_NUM_THREADS=1
+      - VECLIB_MAXIMUM_THREADS=1
+      - NUMEXPR_NUM_THREADS=1
+    volumes:
+      # Live code bind mount: changes on host are immediately active inside container
+      - ..:/app
+      - ${POSHAN_DATA_DIR:-./poshan_data}/photos:/app/data/raw_photos
+      - ${POSHAN_DATA_DIR:-./poshan_data}/audit_logs:/app/audit_logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - poshan_network
+
+  # 5. Nginx Reverse Proxy with SSL Termination
+  nginx:
+    image: nginx:alpine
+    container_name: poshan_nginx
+    restart: always
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ${POSHAN_DATA_DIR:-./poshan_data}/audit_logs:/app/audit_logs:ro
+    depends_on:
+      - web
+    networks:
+      - poshan_network
+
+  # 6. Dozzle: Real-Time Docker Container Logs & Live CPU/RAM Metrics
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: poshan_dozzle
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "${DOZZLE_PORT:-8888}:8080"
+    networks:
+      - poshan_network
+
+  # 7. Flower: Celery ML Tasks, Pipeline Latencies & Redis Queue Monitor
+  flower:
+    build:
+      context: ..
+      dockerfile: production/Dockerfile
+    container_name: poshan_flower
+    restart: always
+    command: celery -A production.celery_app.celery flower --port=5555 --basic_auth=${FLOWER_BASIC_AUTH:-admin:poshan_admin_2026}
+    volumes:
+      - ..:/app
+    env_file:
+      - .env
+    environment:
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD:-poshan_redis_pass_2026}@redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD:-poshan_redis_pass_2026}@redis:6379/1
+    ports:
+      - "${FLOWER_PORT:-5555}:5555"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - poshan_network
+
+networks:
+  poshan_network:
+    driver: bridge
