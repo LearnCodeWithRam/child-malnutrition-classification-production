@@ -34,4 +34,4 @@ COPY . /app
 EXPOSE 8000
 
 # Default command: Gunicorn managing 4 Uvicorn workers
-CMD ["gunicorn", "production.app_prod:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "--timeout", "120", "--graceful-timeout", "30", "--keep-alive", "65"]
+CMD ["gunicorn", "production.app_prod:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "--timeout", "600", "--graceful-timeout", "60", "--keep-alive", "600"]
