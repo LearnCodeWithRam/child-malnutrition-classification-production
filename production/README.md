@@ -244,6 +244,66 @@ curl -X POST -H "X-Admin-Key: your_admin_key" \
      "http://localhost:8000/api/v1/admin/child/delete"
 ```
 
+### 4. Frontline Worker Authorization, Deregistration & Management API
+To manage authorized health workers, discontinue access for specific numbers, or view active registered staff, dedicated REST API endpoints and WhatsApp commands are available.
+
+#### A. Remove / Deregister a Mobile Number (Discontinue Chat)
+- **Endpoints**: `DELETE /api/v1/auth/workers/{phone}` or `POST /api/v1/auth/workers/remove` (also available under `/api/v1/admin/workers/...`)
+- **Headers**: `X-Admin-Key: <ADMIN_API_KEY>` (or query param `?admin_key=...`)
+- **Action**:
+  - Immediately purges the number from `authorized_workers.json` and marks `is_active = False` in the PostgreSQL `workers` table.
+  - **The chat is immediately discontinued/blocked**.
+  - Any subsequent incoming message from that number receives the bilingual `Access Restricted` lock prompt (`🔒 అనుమతి అవసరం`).
+  - The worker **must re-register by sending `JOIN 12345` (or `JOIN 1234`)** to reactivate their account.
+
+```bash
+# Method 1: Via DELETE request (Path Parameter)
+curl -X DELETE "https://pediamorph-ai.tech/api/v1/auth/workers/918349819726" \
+     -H "X-Admin-Key: poshan_admin_secret_2026"
+
+# Method 2: Via POST request (JSON Body)
+curl -X POST "https://pediamorph-ai.tech/api/v1/auth/workers/remove" \
+     -H "Content-Type: application/json" \
+     -H "X-Admin-Key: poshan_admin_secret_2026" \
+     -d '{"phone": "918349819726"}'
+```
+
+**Response**:
+```json
+{
+  "status": "success",
+  "message": "Phone number '918349819726' was successfully removed. Chat is discontinued until re-registered with PIN.",
+  "phone": "918349819726",
+  "re_registration_required": "JOIN 12345"
+}
+```
+
+#### B. List All Registered Workers
+- **Endpoint**: `GET /api/v1/auth/workers` (or `GET /api/v1/admin/workers`)
+- **Headers**: `X-Admin-Key: <ADMIN_API_KEY>`
+- **Description**: Returns all currently authorized phone numbers, registration dates, daily quota status, and total completed screening counts.
+
+```bash
+curl -X GET "https://pediamorph-ai.tech/api/v1/auth/workers" \
+     -H "X-Admin-Key: poshan_admin_secret_2026"
+```
+
+#### C. Direct Admin Registration via API
+- **Endpoint**: `POST /api/v1/auth/workers/register`
+- **Headers**: `X-Admin-Key: <ADMIN_API_KEY>`
+- **Description**: Pre-authorizes a health worker's mobile number directly without requiring them to text the PIN.
+
+```bash
+curl -X POST "https://pediamorph-ai.tech/api/v1/auth/workers/register" \
+     -H "Content-Type: application/json" \
+     -H "X-Admin-Key: poshan_admin_secret_2026" \
+     -d '{"phone": "918349819726"}'
+```
+
+#### D. Self-Service WhatsApp Deregistration & PIN Re-Registration
+- **Self-Service Logout**: Any authorized worker can text **`UNREGISTER`** or **`LOGOUT`** directly in the WhatsApp chat. The bot immediately deactivates their account and discontinues screening access.
+- **PIN Re-Registration**: Once removed or logged out, the worker must send **`JOIN 12345`** (or clinic PIN configured in `.env`) to re-activate their profile and resume assessments.
+
 ---
 
 ## 8. Real-Time Web Dashboards (Dozzle & Flower)
