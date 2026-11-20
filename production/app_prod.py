@@ -484,6 +484,21 @@ async def handle_meta_webhook_production(request: Request, db: Session = Depends
         if not img_bytes:
             err_msg = format_whatsapp_error_text(ValueError("Failed to download image from WhatsApp. Connection timeout."))
             send_meta_whatsapp_message(phone_number_id, sender_phone, err_msg)
+            if flow_id:
+                send_meta_whatsapp_flow_message(
+                    phone_number_id=phone_number_id,
+                    recipient_phone=sender_phone,
+                    flow_id=flow_id,
+                    screen_id="DEMOGRAPHICS_SCREEN",
+                    header_text="ఫోటో మార్పిడి / Retake Photo",
+                    body_text=(
+                        "📸 *కొత్త ఫోటో తీయండి / Retake Child Photo*\n"
+                        "━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                        "ఫోటో డౌన్‌లోడ్ చేయడంలో సమస్య ఏర్పడింది. దయచేసి క్రింది బటన్ నొక్కి కొత్త ఫోటోను సమర్పించండి.\n"
+                        "(Image transfer interrupted. Tap below to re-capture and submit a fresh photo.)"
+                    ),
+                    cta_text="📸 Retake Photo"
+                )
             return {"status": "image_download_failed"}
 
         timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")

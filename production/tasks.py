@@ -208,18 +208,18 @@ def process_child_screening_task(
             send_meta_whatsapp_message(phone_number_id, sender_phone, triage_reply)
 
         # Step 7: Send Follow-up Action Button (New Assessment or Retake Photo)
-        effective_flow_id = flow_id or os.environ.get("META_FLOW_ID")
+        effective_flow_id = flow_id or os.environ.get("META_FLOW_ID") or os.environ.get("WHATSAPP_FLOW_ID")
         if effective_flow_id:
             if is_rejected:
                 retake_data = {
-                    "awc_code": str(flow_data.get("awc_code", "") or ""),
-                    "serial_number": str(flow_data.get("serial_number", "") or ""),
-                    "date_of_birth": str(flow_data.get("date_of_birth", "") or datetime.now().strftime("%Y-%m-%d")),
-                    "gender": str(flow_data.get("gender", "") or "Female"),
-                    "height_cm": str(flow_data.get("height_cm", "") or "75.0"),
-                    "weight_kg": str(flow_data.get("weight_kg", "") or "9.0"),
-                    "muac_cm": str(flow_data.get("muac_cm", "") or "12.5"),
-                    "nutritional_status": str(flow_data.get("nutritional_status", "") or "mam")
+                    "awc_code": str((flow_data or {}).get("awc_code", "") or ""),
+                    "serial_number": str((flow_data or {}).get("serial_number", "") or ""),
+                    "date_of_birth": str((flow_data or {}).get("date_of_birth", "") or datetime.now().strftime("%Y-%m-%d")),
+                    "gender": str((flow_data or {}).get("gender", "") or "Female"),
+                    "height_cm": str((flow_data or {}).get("height_cm", "") or "75.0"),
+                    "weight_kg": str((flow_data or {}).get("weight_kg", "") or "9.0"),
+                    "muac_cm": str((flow_data or {}).get("muac_cm", "") or "12.5"),
+                    "nutritional_status": str((flow_data or {}).get("nutritional_status", "") or "mam")
                 }
                 send_meta_whatsapp_flow_message(
                     phone_number_id=phone_number_id,
@@ -237,6 +237,7 @@ def process_child_screening_task(
                     cta_text="📸 Retake Photo",
                     initial_data=retake_data
                 )
+                logger.info(f"✅ Dispatched Retake Photo Flow to {sender_phone} with auto-filled demographics.")
             else:
                 send_meta_whatsapp_flow_message(
                     phone_number_id=phone_number_id,
@@ -275,7 +276,43 @@ def process_child_screening_task(
 
         err_msg = format_whatsapp_error_text(exc)
         send_meta_whatsapp_message(phone_number_id, sender_phone, err_msg)
-        raise self.retry(exc=exc)
+
+        # AT ANY CASE OF ERROR (e.g. arm posture not detected, blurry, corrupt image):
+        # Always send the interactive Retake Photo Flow button so user can immediately move forward
+        effective_flow_id = flow_id or os.environ.get("META_FLOW_ID") or os.environ.get("WHATSAPP_FLOW_ID")
+        if effective_flow_id:
+            try:
+                retake_data = {
+                    "awc_code": str((flow_data or {}).get("awc_code", "") or ""),
+                    "serial_number": str((flow_data or {}).get("serial_number", "") or ""),
+                    "date_of_birth": str((flow_data or {}).get("date_of_birth", "") or datetime.now().strftime("%Y-%m-%d")),
+                    "gender": str((flow_data or {}).get("gender", "") or "Female"),
+                    "height_cm": str((flow_data or {}).get("height_cm", "") or "75.0"),
+                    "weight_kg": str((flow_data or {}).get("weight_kg", "") or "9.0"),
+                    "muac_cm": str((flow_data or {}).get("muac_cm", "") or "12.5"),
+                    "nutritional_status": str((flow_data or {}).get("nutritional_status", "") or "mam")
+                }
+                send_meta_whatsapp_flow_message(
+                    phone_number_id=phone_number_id,
+                    recipient_phone=sender_phone,
+                    flow_id=effective_flow_id,
+                    screen_id="DEMOGRAPHICS_SCREEN",
+                    header_text="ఫోటో మార్పిడి / Retake Photo",
+                    body_text=(
+                        "📸 *కొత్త ఫోటో తీయండి / Retake Child Photo*\n"
+                        "━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                        "పిల్లల కొలతలు మరియు వివరాలు ముందే నింపబడ్డాయి (Auto-filled).\n"
+                        "దయచేసి క్రింది బటన్ నొక్కి వివరాలు సమీక్షించి, కొత్త ఫోటోను సమర్పించండి.\n"
+                        "(Child details are auto-filled. Tap below to review and re-capture a fresh photo.)"
+                    ),
+                    cta_text="📸 Retake Photo",
+                    initial_data=retake_data
+                )
+                logger.info(f"✅ Dispatched Retake Photo Flow to {sender_phone} after task exception.")
+            except Exception as _fe:
+                logger.warning(f"Could not dispatch retake flow button on error: {_fe}")
+
+        return {"status": "error", "audit_id": audit_id, "error": str(exc)}
     finally:
         db.close()
 

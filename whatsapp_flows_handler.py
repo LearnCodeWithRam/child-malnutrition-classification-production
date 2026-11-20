@@ -372,7 +372,7 @@ class WhatsAppFlowsHandler:
                 " • Ensure full left arm is visible and photo is taken in good lighting."
             )
         token = os.environ.get("META_ACCESS_TOKEN") or os.environ.get("TWILIO_AUTH_TOKEN")
-        resolved_flow_id = (flow_id or os.environ.get("WHATSAPP_FLOW_ID") or "").strip()
+        resolved_flow_id = (flow_id or os.environ.get("META_FLOW_ID") or os.environ.get("WHATSAPP_FLOW_ID") or "").strip()
         resolved_screen_id = os.environ.get("FLOW_START_SCREEN") or screen_id or "DEMOGRAPHICS_SCREEN"
 
         if not token or not phone_number_id or not resolved_flow_id:

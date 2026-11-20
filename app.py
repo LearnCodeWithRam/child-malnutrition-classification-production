@@ -139,10 +139,37 @@ def _execute_mobile_pipeline(image_input: Union[bytes, str, Path],
         # Phase 1: Natural Left-Arm Contour & Landmark Extraction (Zero Checkerboard)
         p1 = extract_arm_contour_and_landmarks(image_input)
     except Exception as e:
-        raise HTTPException(
-            status_code=422,
-            detail=f"Phase 1 Vision Processing Error: {str(e)}. Ensure the child's left arm is clearly visible."
-        )
+        # Clinical Quality Rejection: Arm landmarks or posture missing in photo
+        rejection_response = {
+            "status": "quality_rejected",
+            "is_valid": False,
+            "source": source_name,
+            "message": f"Child arm posture or landmarks not detected: {str(e)}",
+            "quality_score": 0.0,
+            "critical_failures": [
+                {
+                    "code": "PRIMARY_JOINTS_MISSING",
+                    "title_te": "ఫోటోలో పిల్లల చేయి సరిగ్గా గుర్తించబడలేదు",
+                    "detail_te": "భుజం నుండి మణికట్టు వరకు చేయి నిటారుగా ఉంచి, మంచి పగటి వెలుతురులో ఫోటో తీయండి.",
+                    "title_en": "Child's arm posture was not detected in this photograph.",
+                    "detail_en": "Hold the child's bare left arm straight from shoulder to wrist in clear daylight."
+                }
+            ],
+            "warnings": [],
+            "customer_instructions": [
+                "Hold the child's bare left arm straight from shoulder to wrist in clear daylight.",
+                "Remove any bangles, threads, or clothes covering arm.",
+                "Hold camera 30-50 cm away and keep arm steady."
+            ],
+            "quality_metrics": {},
+            "timing_sec": {
+                "phase1_vision": round(time.time() - t0, 3),
+                "total": round(time.time() - t0, 3)
+            }
+        }
+        if include_visuals:
+            rejection_response["visualizations"] = {}
+        return rejection_response
     t_p1 = time.time() - t0
 
     # Pre-Flight Quality Guard & Arm Posture Inspection
@@ -1489,19 +1516,32 @@ def format_whatsapp_triage_text(res: dict) -> str:
         seen_titles = set()
         if failures:
             for cf in failures:
-                code = cf.get("code", "")
-                mapped = issue_catalog.get(code)
-                if not mapped:
-                    title_te = cf.get("title_te") or "ఫోటో నాణ్యత సరిపోలలేదు"
-                    detail_te = cf.get("message_te") or "దయచేసి మంచి వెలుతురులో చేయి మొత్తం కనిపించేలా ఫోటో తీయండి."
-                    title_en = cf.get("message") or "Image quality does not meet clinical standards."
-                    detail_en = cf.get("customer_instruction") or "Please retake a clear photo ensuring the full arm is visible."
-                    mapped = {
-                        "title_te": title_te,
-                        "detail_te": detail_te,
-                        "title_en": title_en,
-                        "detail_en": detail_en
-                    }
+                if isinstance(cf, str):
+                    code = cf
+                    mapped = issue_catalog.get(code)
+                    if not mapped:
+                        mapped = {
+                            "title_te": "చేయి సరిగా గుర్తించబడలేదు",
+                            "detail_te": "ఎడమ చేయి మొత్తం స్పష్టంగా కనిపించేలా మంచి వెలుతురులో ఫోటో తీయండి.",
+                            "title_en": "Child's arm posture was not detected in this photograph.",
+                            "detail_en": "Hold the child's bare left arm straight from shoulder to wrist in clear daylight."
+                        }
+                elif isinstance(cf, dict):
+                    code = cf.get("code", "")
+                    mapped = issue_catalog.get(code)
+                    if not mapped:
+                        title_te = cf.get("title_te") or "ఫోటో నాణ్యత సరిపోలలేదు"
+                        detail_te = cf.get("detail_te") or cf.get("message_te") or "దయచేసి మంచి వెలుతురులో చేయి మొత్తం కనిపించేలా ఫోటో తీయండి."
+                        title_en = cf.get("title_en") or cf.get("message") or "Image quality does not meet clinical standards."
+                        detail_en = cf.get("detail_en") or cf.get("customer_instruction") or "Please retake a clear photo ensuring the full arm is visible."
+                        mapped = {
+                            "title_te": title_te,
+                            "detail_te": detail_te,
+                            "title_en": title_en,
+                            "detail_en": detail_en
+                        }
+                else:
+                    continue
                 if mapped["title_te"] in seen_titles:
                     continue
                 seen_titles.add(mapped["title_te"])
