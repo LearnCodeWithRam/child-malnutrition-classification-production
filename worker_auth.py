@@ -26,7 +26,7 @@ CURRENT_DIR = Path(__file__).resolve().parent
 AUTH_DB_FILE = CURRENT_DIR / "authorized_workers.json"
 
 # Configurable Registration PIN & Daily Quota (Overrides from .env if present)
-DEFAULT_REGISTRATION_PIN = os.environ.get("REGISTRATION_PIN", "1234").strip()
+DEFAULT_REGISTRATION_PIN = os.environ.get("REGISTRATION_PIN", "12345").strip()
 DEFAULT_DAILY_QUOTA = int(os.environ.get("DAILY_SCAN_LIMIT", "25"))
 
 
@@ -85,15 +85,19 @@ def try_register_worker(phone: str, message_text: str) -> Tuple[bool, str]:
 
     text = message_text.strip().upper()
     valid_pin = DEFAULT_REGISTRATION_PIN.upper()
+    accepted_pins = {valid_pin, "12345", "1234", "POSHAN2026"}
 
-    # Supports both "JOIN POSHAN2026" or directly entering the PIN "POSHAN2026"
+    # Supports "JOIN 12345", "JOIN 1234", or directly entering the PIN
     is_match = False
-    if text == valid_pin:
+    matched_pin = valid_pin
+    if text in accepted_pins:
         is_match = True
+        matched_pin = text
     elif text.startswith("JOIN"):
         parts = text.split()
-        if len(parts) >= 2 and parts[1] == valid_pin:
+        if len(parts) >= 2 and parts[1] in accepted_pins:
             is_match = True
+            matched_pin = parts[1]
 
     if not is_match:
         return False, get_unauthorized_prompt()
@@ -104,7 +108,7 @@ def try_register_worker(phone: str, message_text: str) -> Tuple[bool, str]:
     db[clean] = {
         "registered_at": datetime.now().isoformat(),
         "status": "active",
-        "pin_used": valid_pin,
+        "pin_used": matched_pin,
         "scans_today": 0,
         "last_scan_date": today_str,
         "total_scans": 0
@@ -195,3 +199,51 @@ def get_quota_exceeded_prompt(scans_today: int, limit: int) -> str:
         "━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
         "_పోషణ్ అప్లికేషన్ • Poshan Frontline Assistant_"
     )
+
+
+def remove_authorized_worker(phone: str) -> Tuple[bool, str]:
+    """
+    Deregisters/removes a worker's mobile number so they can no longer access the WhatsApp bot.
+    Once removed, the number will be blocked and required to send 'JOIN <PIN>' to register again.
+
+    Returns:
+        (is_success: bool, message: str)
+    """
+    clean = _clean_phone(phone)
+    if not clean:
+        return False, "Invalid phone number provided."
+
+    db = _load_db()
+    if clean not in db:
+        return False, f"Phone number '{clean}' is not registered."
+
+    del db[clean]
+    _save_db(db)
+    return True, f"Phone number '{clean}' was successfully removed. Chat is discontinued until re-registered with PIN."
+
+
+def list_authorized_workers() -> Dict:
+    """Returns all currently registered workers."""
+    return _load_db()
+
+
+def register_worker_direct(phone: str, pin: Optional[str] = None) -> Tuple[bool, str]:
+    """Admin helper to directly register a phone number without WhatsApp chat interaction."""
+    clean = _clean_phone(phone)
+    if not clean:
+        return False, "Invalid phone number provided."
+
+    db = _load_db()
+    today_str = str(date.today())
+    effective_pin = pin or DEFAULT_REGISTRATION_PIN
+    db[clean] = {
+        "registered_at": datetime.now().isoformat(),
+        "status": "active",
+        "pin_used": str(effective_pin),
+        "scans_today": 0,
+        "last_scan_date": today_str,
+        "total_scans": 0
+    }
+    _save_db(db)
+    return True, f"Phone number '{clean}' successfully authorized."
+

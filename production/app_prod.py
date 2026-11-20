@@ -16,6 +16,7 @@ from fastapi import FastAPI, Request, Response, HTTPException, Depends, status, 
 from fastapi.responses import JSONResponse, PlainTextResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
@@ -56,7 +57,12 @@ from worker_auth import (
     is_worker_authorized,
     try_register_worker,
     check_and_increment_daily_quota,
-    get_unauthorized_prompt
+    get_unauthorized_prompt,
+    remove_authorized_worker,
+    list_authorized_workers,
+    register_worker_direct,
+    DEFAULT_REGISTRATION_PIN,
+    _clean_phone
 )
 from whatsapp_flows_handler import flows_handler
 
@@ -271,8 +277,25 @@ async def handle_meta_webhook_production(request: Request, db: Session = Depends
     if msg_id:
         mark_meta_whatsapp_read(phone_number_id, msg_id)
 
-    # 1. Registration command (e.g. 'JOIN 1234' or '1234')
+    # 1. Registration command (e.g. 'JOIN 1234' or 'JOIN 12345')
     if text_body:
+        # Check for unregister / logout command (e.g. 'UNREGISTER', 'DEREGISTER', 'LOGOUT', 'నిష్క్రమించు')
+        if text_body.upper().strip() in ["UNREGISTER", "DEREGISTER", "LOGOUT", "నిష్క్రమించు"]:
+            remove_authorized_worker(sender_phone)
+            logout_reply = (
+                "👋 *ఖాతా నిలిపివేయబడింది (Account Deactivated)*\n"
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                "మీ మొబైల్ నంబర్ విజయవంతంగా తొలగించబడింది.\n"
+                "Your mobile number has been deregistered from Poshan Assistant.\n\n"
+                "🔑 *తిరిగి ప్రారంభించడానికి (To Rejoin):*\n"
+                f"👉 `JOIN {DEFAULT_REGISTRATION_PIN}` అని టైప్ చేసి పంపండి.\n"
+                f"Send `JOIN {DEFAULT_REGISTRATION_PIN}` anytime to activate again.\n"
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                "_పోషణ్ అప్లికేషన్ • Poshan Frontline Assistant_"
+            )
+            send_meta_whatsapp_message(phone_number_id, sender_phone, logout_reply)
+            return {"status": "unregistered", "phone": sender_phone}
+
         is_reg, reg_reply = try_register_worker(sender_phone, text_body)
         if is_reg:
             send_meta_whatsapp_message(phone_number_id, sender_phone, reg_reply)
@@ -718,6 +741,148 @@ async def delete_child_data_post_endpoint(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=result.get("message"))
 
     return JSONResponse(content=result, status_code=200)
+
+
+# ==============================================================================
+# WORKER AUTHORIZATION & DEREGISTRATION MANAGEMENT ENDPOINTS
+# ==============================================================================
+
+class WorkerActionRequest(BaseModel):
+    phone: str = Field(..., description="Worker phone number (e.g. +918349819726 or 918349819726)")
+
+
+@app.get("/api/v1/admin/workers", tags=["Worker Management"])
+@app.get("/api/v1/auth/workers", tags=["Worker Management"])
+def get_registered_workers_endpoint(
+    authorized: bool = Depends(verify_admin_key)
+):
+    """
+    Lists all currently registered mobile numbers authorized to use the Poshan WhatsApp screening system.
+    Authenticate via header: X-Admin-Key: poshan_admin_secret_2026 or query param ?admin_key=...
+    """
+    workers = list_authorized_workers()
+    return JSONResponse(
+        content={
+            "status": "success",
+            "total_registered": len(workers),
+            "workers": workers
+        },
+        status_code=200
+    )
+
+
+@app.delete("/api/v1/admin/workers/{phone}", tags=["Worker Management"])
+@app.delete("/api/v1/auth/workers/{phone}", tags=["Worker Management"])
+def remove_worker_by_path_endpoint(
+    phone: str,
+    db: Session = Depends(get_db),
+    authorized: bool = Depends(verify_admin_key)
+):
+    """
+    Removes/deregisters a registered mobile number.
+    Immediately discontinues access to the WhatsApp screening assistant.
+    The worker will be blocked from screening until they re-register by sending 'JOIN <PIN>'.
+    """
+    clean = _clean_phone(phone)
+    success, msg = remove_authorized_worker(clean)
+    if not success:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=msg)
+
+    # Synchronize PostgreSQL Worker table if present
+    try:
+        db_worker = db.query(Worker).filter(Worker.phone_number == clean).first()
+        if db_worker:
+            db_worker.is_active = False
+            db.commit()
+    except Exception as e:
+        print(f"[WorkerAuth Warning] Could not update PostgreSQL Worker is_active: {e}")
+
+    return JSONResponse(
+        content={
+            "status": "success",
+            "message": msg,
+            "phone": clean,
+            "re_registration_required": f"JOIN {DEFAULT_REGISTRATION_PIN}"
+        },
+        status_code=200
+    )
+
+
+@app.post("/api/v1/admin/workers/remove", tags=["Worker Management"])
+@app.post("/api/v1/auth/workers/remove", tags=["Worker Management"])
+def remove_worker_by_post_endpoint(
+    payload: WorkerActionRequest,
+    db: Session = Depends(get_db),
+    authorized: bool = Depends(verify_admin_key)
+):
+    """
+    POST variant for removing/deregistering a mobile number using JSON body:
+    {
+      "phone": "918349819726"
+    }
+    """
+    clean = _clean_phone(payload.phone)
+    success, msg = remove_authorized_worker(clean)
+    if not success:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=msg)
+
+    try:
+        db_worker = db.query(Worker).filter(Worker.phone_number == clean).first()
+        if db_worker:
+            db_worker.is_active = False
+            db.commit()
+    except Exception as e:
+        print(f"[WorkerAuth Warning] Could not update PostgreSQL Worker is_active: {e}")
+
+    return JSONResponse(
+        content={
+            "status": "success",
+            "message": msg,
+            "phone": clean,
+            "re_registration_required": f"JOIN {DEFAULT_REGISTRATION_PIN}"
+        },
+        status_code=200
+    )
+
+
+@app.post("/api/v1/admin/workers/register", tags=["Worker Management"])
+@app.post("/api/v1/auth/workers/register", tags=["Worker Management"])
+def register_worker_admin_endpoint(
+    payload: WorkerActionRequest,
+    db: Session = Depends(get_db),
+    authorized: bool = Depends(verify_admin_key)
+):
+    """
+    Directly registers/authorizes a mobile number via API without requiring WhatsApp PIN chat interaction:
+    {
+      "phone": "918349819726"
+    }
+    """
+    clean = _clean_phone(payload.phone)
+    success, msg = register_worker_direct(clean)
+    if not success:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
+
+    try:
+        db_worker = db.query(Worker).filter(Worker.phone_number == clean).first()
+        if db_worker:
+            db_worker.is_active = True
+        else:
+            new_worker = Worker(phone_number=clean, is_active=True)
+            db.add(new_worker)
+        db.commit()
+    except Exception as e:
+        print(f"[WorkerAuth Warning] Could not update PostgreSQL Worker record: {e}")
+
+    return JSONResponse(
+        content={
+            "status": "success",
+            "message": msg,
+            "phone": clean
+        },
+        status_code=200
+    )
+
 
 
 # ==============================================================================
