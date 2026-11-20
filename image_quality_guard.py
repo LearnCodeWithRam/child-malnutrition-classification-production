@@ -169,6 +169,18 @@ TELUGU_TRANSLATIONS: Dict[str, Dict[str, str]] = {
     "title": "చేయి గుర్తించబడలేదు / Arm Not Detected",
     "message": "ఫోటోలో పిల్లల చేయి స్పష్టంగా కనిపించడం లేదు. / The child's arm could not be clearly detected in the photo.",
     "instruction": "ఎడమ చేయి మొత్తం కనిపించేలా మళ్లీ ఫోటో తీయండి. / Retake the photo ensuring the entire left arm is visible."
+  },
+
+  "ARM_TOO_SMALL_OR_NON_HUMAN": {
+    "title": "పిల్లల చేయి గుర్తించబడలేదు / చేయి చాలా చిన్నదిగా ఉంది / Arm Too Small or Not Detected",
+    "message": "ఫోటోలో పిల్లల చేయి గుర్తించబడలేదు లేదా చాలా దూరంగా ఉంది. / Child's arm was not detected or is too far away.",
+    "instruction": "కెమెరాను పిల్లల ఎడమ చేతికి 30-50 సెం.మీ దగ్గరగా ఉంచి చేయి మొత్తం స్పష్టంగా కనిపించేలా ఫోటో తీయండి. / Bring the camera closer (30-50 cm) to the child's bare left arm and retake the photo."
+  },
+
+  "NON_HUMAN_OBJECT_DETECTED": {
+    "title": "పిల్లల చేయి గుర్తించబడలేదు / No Child Arm Detected",
+    "message": "ఫోటోలో పిల్లల చేయి లేదా మానవ శరీరం గుర్తించబడలేదు. / No child body or arm detected in photograph.",
+    "instruction": "దయచేసి కంప్యూటర్, ఫర్నిచర్ లేదా ఇతర వస్తువులు కాకుండా కేవలం పిల్లల ఎడమ చేయి మాత్రమే కనిపించేలా ఫోటో తీయండి. / Photograph only the child's bare left arm without background clutter."
   }
 }
 
@@ -330,6 +342,15 @@ def inspect_image_and_contour_quality(
 
         metrics["elbow_angle_deg"] = round(elbow_angle, 1)
         metrics["arm_stretch_ratio"] = round(stretch_ratio, 3)
+        metrics["total_arm_length_px"] = round(d_total, 1)
+
+        # 2.0 Check Arm Pixel Scale / Non-Human Object
+        if d_total < 150.0:
+            critical_failures.append(_make_failure(
+                "ARM_TOO_SMALL_OR_NON_HUMAN",
+                f"Detected arm length is too small ({d_total:.1f} px < 150 px). Non-human object or camera too far away.",
+                "Hold the camera closer (30-50 cm) to the child's bare left arm and capture the full arm clearly."
+            ))
 
         # 2.1 Check Elbow Angle (Straight Stretch)
         if elbow_angle < MIN_ELBOW_ANGLE_DEG or stretch_ratio < MIN_STRETCH_RATIO:

@@ -145,19 +145,39 @@ def _execute_mobile_pipeline(image_input: Union[bytes, str, Path],
         p1 = extract_arm_contour_and_landmarks(image_input)
     except Exception as e:
         # Clinical Quality Rejection: Arm landmarks or posture missing in photo
+        err_msg = str(e)
+        if "too small" in err_msg.lower():
+            fail_code = "ARM_TOO_SMALL_OR_NON_HUMAN"
+            title_te = "పిల్లల చేయి గుర్తించబడలేదు / చేయి చాలా చిన్నదిగా ఉంది"
+            detail_te = "ఫోటోలో పిల్లల చేయి చాలా చిన్నదిగా ఉంది లేదా గుర్తించబడలేదు. కెమెరాను పిల్లల ఎడమ చేతికి 30-50 సెం.మీ దగ్గరగా ఉంచి చేయి మొత్తం కనిపించేలా తీయండి."
+            title_en = "Arm not detected or too far away."
+            detail_en = "Hold the camera closer (30-50 cm) to the child's bare left arm and retake the photo."
+        elif "no child body" in err_msg.lower() or "no child pose" in err_msg.lower():
+            fail_code = "NON_HUMAN_OBJECT_DETECTED"
+            title_te = "పిల్లల చేయి గుర్తించబడలేదు"
+            detail_te = "ఫోటోలో పిల్లల చేయి లేదా మానవ శరీరం గుర్తించబడలేదు. దయచేసి కంప్యూటర్, ఫర్నిచర్ లేదా ఇతర వస్తువులు కాకుండా కేవలం పిల్లల ఎడమ చేయి మాత్రమే కనిపించేలా ఫోటో తీయండి."
+            title_en = "No child pose detected."
+            detail_en = "No human arm was detected. Please photograph only the child's bare left arm in good lighting."
+        else:
+            fail_code = "PRIMARY_JOINTS_MISSING"
+            title_te = "ఫోటోలో పిల్లల చేయి సరిగ్గా గుర్తించబడలేదు"
+            detail_te = "భుజం నుండి మణికట్టు వరకు చేయి నిటారుగా ఉంచి, మంచి పగటి వెలుతురులో ఫోటో తీయండి."
+            title_en = "Child's arm posture was not detected in this photograph."
+            detail_en = "Hold the child's bare left arm straight from shoulder to wrist in clear daylight."
+
         rejection_response = {
             "status": "quality_rejected",
             "is_valid": False,
             "source": source_name,
-            "message": f"Child arm posture or landmarks not detected: {str(e)}",
+            "message": f"Child arm posture or landmarks not detected: {err_msg}",
             "quality_score": 0.0,
             "critical_failures": [
                 {
-                    "code": "PRIMARY_JOINTS_MISSING",
-                    "title_te": "ఫోటోలో పిల్లల చేయి సరిగ్గా గుర్తించబడలేదు",
-                    "detail_te": "భుజం నుండి మణికట్టు వరకు చేయి నిటారుగా ఉంచి, మంచి పగటి వెలుతురులో ఫోటో తీయండి.",
-                    "title_en": "Child's arm posture was not detected in this photograph.",
-                    "detail_en": "Hold the child's bare left arm straight from shoulder to wrist in clear daylight."
+                    "code": fail_code,
+                    "title_te": title_te,
+                    "detail_te": detail_te,
+                    "title_en": title_en,
+                    "detail_en": detail_en
                 }
             ],
             "warnings": [],
@@ -215,10 +235,32 @@ def _execute_mobile_pipeline(image_input: Union[bytes, str, Path],
         raw_coords = p1["raw_coordinates"]
         p2 = engine.diagnose_full_pipeline(raw_coords)
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Phase 2 Classification Engine Error: {str(e)}"
-        )
+        return {
+            "status": "quality_rejected",
+            "is_valid": False,
+            "source": source_name,
+            "message": f"Morphometric analysis could not be completed: {str(e)}",
+            "quality_score": 0.0,
+            "critical_failures": [
+                {
+                    "code": "CONTOUR_EXTRACTION_FAILED",
+                    "title_te": "చిత్ర విశ్లేషణ లోపం",
+                    "detail_te": "పిల్లల ఎడమ చేయి మొత్తం కనిపించేలా, మంచి వెలుతురులో ఫోటో తీసి మళ్లీ సమర్పించండి.",
+                    "title_en": "Analysis could not be completed.",
+                    "detail_en": "Please ensure the child's bare left arm is held straight in good daylight and retake the photo."
+                }
+            ],
+            "warnings": [],
+            "customer_instructions": [
+                "Hold the child's bare left arm straight from shoulder to wrist in clear daylight.",
+                "Ensure arm is unobstructed and steady."
+            ],
+            "quality_metrics": {},
+            "timing_sec": {
+                "phase1_vision": round(t_p1, 3),
+                "total": round(time.time() - t0, 3)
+            }
+        }
     t_p2 = time.time() - t1_start
 
     ens_res = p2["offline_ensemble"]
@@ -1465,6 +1507,18 @@ def format_whatsapp_triage_text(res: dict) -> str:
                 "detail_te": "ఎడమ చేయి మొత్తం స్పష్టంగా కనిపించేలా మంచి వెలుతురులో ఫోటో తీయండి.",
                 "title_en": "Arm could not be clearly detected.",
                 "detail_en": "Ensure the child's left arm is clearly visible in good lighting."
+            },
+            "ARM_TOO_SMALL_OR_NON_HUMAN": {
+                "title_te": "పిల్లల చేయి గుర్తించబడలేదు / చేయి చాలా చిన్నదిగా ఉంది",
+                "detail_te": "ఫోటోలో పిల్లల చేయి గుర్తించబడలేదు లేదా చాలా దూరంగా ఉంది. కెమెరాను పిల్లల ఎడమ చేతికి 30-50 సెం.మీ దగ్గరగా ఉంచి చేయి మొత్తం కనిపించేలా ఫోటో తీయండి.",
+                "title_en": "Child's arm not detected or too far away.",
+                "detail_en": "No child arm was detected. Hold the camera closer (30-50 cm) to the child's bare left arm and retake the photo."
+            },
+            "NON_HUMAN_OBJECT_DETECTED": {
+                "title_te": "పిల్లల చేయి గుర్తించబడలేదు",
+                "detail_te": "ఫోటోలో మానవ శరీరం లేదా చేయి గుర్తించబడలేదు. దయచేసి కంప్యూటర్, ఫర్నిచర్ లేదా ఇతర వస్తువులు కాకుండా కేవలం పిల్లల ఎడమ చేయి మాత్రమే కనిపించేలా ఫోటో తీయండి.",
+                "title_en": "No child pose detected in photo.",
+                "detail_en": "No child subject or arm was detected. Please photograph only the child's bare left arm."
             },
             "CONTOUR_PERPENDICULAR_SCAN_FAILED": {
                 "title_te": "చేయి అంచులు స్పష్టంగా లేవు",

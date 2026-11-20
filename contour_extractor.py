@@ -184,6 +184,9 @@ def extract_arm_contour_and_landmarks(
     left_vis = (getattr(left_s, 'visibility', 0) + getattr(left_e, 'visibility', 0) + getattr(left_w, 'visibility', 0)) / 3.0
     right_vis = (getattr(right_s, 'visibility', 0) + getattr(right_e, 'visibility', 0) + getattr(right_w, 'visibility', 0)) / 3.0
 
+    if max(left_vis, right_vis) < 0.25:
+        raise ValueError("No child pose detected in photograph. Landmarks lack sufficient human confidence.")
+
     if right_vis > left_vis and right_vis > 0.35:
         shoulder, elbow, wrist = right_s, right_e, right_w
         arm_side = "Right (Mirrored to Left)"
@@ -206,9 +209,29 @@ def extract_arm_contour_and_landmarks(
     # Category 2 = skin, Category 4 = clothes -> body mask
     person_mask = np.where((category_mask == 2) | (category_mask == 4), 255, 0).astype(np.uint8)
 
+    # Clinical Guard 1: Verify presence of real child body / skin in photograph
+    person_px_count = int(np.count_nonzero(person_mask))
+    if person_px_count < 500:
+        raise ValueError(
+            "No child body or skin detected in photograph. "
+            "Please ensure the child's bare left arm is photographed clearly without non-human clutter."
+        )
+
     upper_arm_len_px = float(np.linalg.norm(np.array(elbow_coords) - np.array(shoulder_coords)))
     fore_arm_len_px  = float(np.linalg.norm(np.array(wrist_coords) - np.array(elbow_coords)))
     total_arm_len_px = float(np.linalg.norm(np.array(wrist_coords) - np.array(shoulder_coords)))
+
+    # Clinical Guard 2: Arm pixel scale check - pediatric arm photographed at 30-50 cm must span >= 150 px
+    if total_arm_len_px < 150.0:
+        raise ValueError(
+            f"Detected arm region is too small ({total_arm_len_px:.0f} px < 150 px). "
+            "Please bring the camera closer (30-50 cm) to the child's bare left arm."
+        )
+    if upper_arm_len_px < 55.0 or fore_arm_len_px < 55.0:
+        raise ValueError(
+            "Detected upper-arm or forearm length is too short (< 55 px). "
+            "Ensure the full child arm is captured close-up."
+        )
 
     upper_thick = max(18, int(upper_arm_len_px * 0.32))
     fore_thick  = max(14, int(fore_arm_len_px  * 0.28))
@@ -222,8 +245,14 @@ def extract_arm_contour_and_landmarks(
     mask_roi = cv2.dilate(mask_roi, np.ones((11, 11), np.uint8), iterations=1)
 
     arm_mask = cv2.bitwise_and(person_mask, mask_roi)
-    if cv2.countNonZero(arm_mask) < 100:
-        arm_mask = mask_roi.copy()
+    
+    # Clinical Guard 3: Reject non-human or empty limb region without generating synthetic fallback
+    arm_px_count = int(cv2.countNonZero(arm_mask))
+    if arm_px_count < 300:
+        raise ValueError(
+            "No child arm posture detected along the expected limb path. "
+            "Ensure the child's bare left arm is visible and unobstructed."
+        )
 
     # Morphological contour smoothing
     arm_mask = cv2.morphologyEx(arm_mask, cv2.MORPH_OPEN,  np.ones((3, 3),  np.uint8), iterations=1)
