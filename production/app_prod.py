@@ -494,12 +494,15 @@ async def handle_meta_webhook_production(request: Request, db: Session = Depends
                     recipient_phone=sender_phone,
                     flow_id=flow_id,
                     screen_id="DEMOGRAPHICS_SCREEN",
-                    header_text="ఫోటో మార్పిడి / Retake Photo",
+                    header_type="text",
+                    header_text="ఫోటో మార్పిడి (Retake Photo)",
                     body_text=(
-                        "📸 *కొత్త ఫోటో తీయండి / Retake Child Photo*\n"
+                        "📸 *కొత్త ఫోటో తీయండి (Retake Child Photo)*\n"
                         "━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                        "ఫోటో డౌన్‌లోడ్ చేయడంలో సమస్య ఏర్పడింది. దయచేసి క్రింది బటన్ నొక్కి కొత్త ఫోటోను సమర్పించండి.\n"
-                        "(Image transfer interrupted. Tap below to re-capture and submit a fresh photo.)"
+                        "ఫోటో డౌన్‌లోడ్ చేయడంలో సమస్య ఏర్పడింది.\n"
+                        "దయచేసి క్రింది బటన్ నొక్కి కొత్త ఫోటోను సమర్పించండి.\n\n"
+                        "*(Instructions in English):*\n"
+                        "Image transfer interrupted. Tap \"Retake Photo\" button below to capture and submit a new photo."
                     ),
                     cta_text="📸 Retake Photo"
                 )

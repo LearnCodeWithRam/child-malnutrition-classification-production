@@ -226,13 +226,15 @@ def process_child_screening_task(
                     recipient_phone=sender_phone,
                     flow_id=effective_flow_id,
                     screen_id="DEMOGRAPHICS_SCREEN",
-                    header_text="ఫోటో మార్పిడి / Retake Photo",
+                    header_type="text",
+                    header_text="ఫోటో మార్పిడి (Retake Photo)",
                     body_text=(
-                        "📸 *కొత్త ఫోటో తీయండి / Retake Child Photo*\n"
+                        "📸 *కొత్త ఫోటో తీయండి (Retake Child Photo)*\n"
                         "━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                        "పిల్లల కొలతలు మరియు వివరాలు ముందే నింపబడ్డాయి (Auto-filled).\n"
-                        "దయచేసి క్రింది బటన్ నొక్కి వివరాలు సమీక్షించి, కొత్త ఫోటోను సమర్పించండి.\n"
-                        "(Child details are auto-filled. Tap below to review and re-capture a fresh photo.)"
+                        "పిల్లల కొలతలు మరియు వివరాలు ముందే నింపబడ్డాయి.\n"
+                        "దయచేసి క్రింది బటన్ నొక్కి కొత్త ఫోటోను సమర్పించండి.\n\n"
+                        "*(Instructions in English):*\n"
+                        "Child details are auto-filled. Tap \"Retake Photo\" button below to capture and submit a new photo."
                     ),
                     cta_text="📸 Retake Photo",
                     initial_data=retake_data
@@ -297,13 +299,15 @@ def process_child_screening_task(
                     recipient_phone=sender_phone,
                     flow_id=effective_flow_id,
                     screen_id="DEMOGRAPHICS_SCREEN",
-                    header_text="ఫోటో మార్పిడి / Retake Photo",
+                    header_type="text",
+                    header_text="ఫోటో మార్పిడి (Retake Photo)",
                     body_text=(
-                        "📸 *కొత్త ఫోటో తీయండి / Retake Child Photo*\n"
+                        "📸 *కొత్త ఫోటో తీయండి (Retake Child Photo)*\n"
                         "━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                        "పిల్లల కొలతలు మరియు వివరాలు ముందే నింపబడ్డాయి (Auto-filled).\n"
-                        "దయచేసి క్రింది బటన్ నొక్కి వివరాలు సమీక్షించి, కొత్త ఫోటోను సమర్పించండి.\n"
-                        "(Child details are auto-filled. Tap below to review and re-capture a fresh photo.)"
+                        "పిల్లల కొలతలు మరియు వివరాలు ముందే నింపబడ్డాయి.\n"
+                        "దయచేసి క్రింది బటన్ నొక్కి కొత్త ఫోటోను సమర్పించండి.\n\n"
+                        "*(Instructions in English):*\n"
+                        "Child details are auto-filled. Tap \"Retake Photo\" button below to capture and submit a new photo."
                     ),
                     cta_text="📸 Retake Photo",
                     initial_data=retake_data

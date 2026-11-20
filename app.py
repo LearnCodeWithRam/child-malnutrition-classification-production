@@ -1085,26 +1085,18 @@ def send_meta_whatsapp_flow_message(
             "🙏 *పోషణ్ యాప్‌కు స్వాగతం (Welcome to Poshan Application)*\n"
             "━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
             "📋 *తక్షణ ఫలితం పొందడానికి 3 సులభ దశలు:*\n"
-            "క్రింద ఉన్న \"Start Assessment\" బటన్‌ను నొక్కి ఈ 3 సులభ దశలను పూర్తి చేయండి.\n\n"
-            "✅ *దశ 1: వివరాలు నమోదు చేయండి*\n"
-            " • పిల్లల వయస్సు, లింగం, ఎత్తు, బరువు మరియు MUAC నమోదు చేయండి.\n\n"
-            "✅ *దశ 2: ఎడమ చేయి ఫోటో తీయండి*\n"
-            " • పిల్లల ఎడమ చేయి స్పష్టంగా కనిపించేలా ఫోటో తీసి Submit నొక్కండి.\n\n"
-            "✅ *దశ 3: ఫలితం పొందండి*\n"
-            " • పిల్లల పోషక స్థితి మరియు ఆరోగ్య నివేదికను వెంటనే పొందండి.\n\n"
-            "📌 *గమనిక:* స్పష్టమైన ఫోటో కోసం పిల్లల ఎడమ చేయి మొత్తం కనిపించేలా మంచి పగటి వెలుతురులో ఫోటో తీయండి.\n\n"
+            "క్రింద ఉన్న \"Start Assessment\" బటన్ నొక్కి పూర్తి చేయండి.\n\n"
+            "✅ *దశ 1:* పిల్లల వయస్సు, లింగం, ఎత్తు, బరువు, MUAC నమోదు చేయండి.\n"
+            "✅ *దశ 2:* పిల్లల ఎడమ చేయి స్పష్టంగా కనిపించేలా ఫోటో తీసి సమర్పించండి.\n"
+            "✅ *దశ 3:* పిల్లల పోషక స్థితి మరియు ఆరోగ్య నివేదికను వెంటనే పొందండి.\n"
+            "📌 *గమనిక:* స్పష్టమైన ఫోటో కోసం పగటి వెలుతురులో చేయి మొత్తం కనిపించేలా ఫోటో తీయండి.\n\n"
             "━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
             "*(Instructions in English):*\n"
-            "Tap the \"Start Assessment\" button and complete these 3 simple steps:\n\n"
-            "✅ *Step 1: Enter Child Details*\n"
-            " • Enter the child's Age, Gender, Height, Weight, and MUAC.\n\n"
-            "✅ *Step 2: Take Left Arm Photo*\n"
-            " • Capture a clear photo of child's left arm and click Submit.\n\n"
-            "✅ *Step 3: Get Instant Result*\n"
-            " • View the child's nutrition screening result and triage instantly.\n\n"
-            "📌 *Note:* For best results, ensure the full left arm is visible and the photo is taken in clear daylight.\n\n"
-            "━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-            "_Govt. of Andhra Pradesh • Poshan Application_"
+            "Tap \"Start Assessment\" button and complete 3 simple steps:\n\n"
+            "✅ *Step 1:* Enter child's Age, Gender, Height, Weight, and MUAC.\n"
+            "✅ *Step 2:* Capture a clear photo of child's left arm and submit.\n"
+            "✅ *Step 3:* View child's nutrition screening result instantly.\n"
+            "📌 *Note:* Ensure full arm is visible in clear daylight."
         )
     return flows_handler.send_flow_message(
         phone_number_id=phone_number_id,
@@ -1323,24 +1315,18 @@ def get_welcome_and_form_recommendation_text(sender_phone: str) -> str:
         "🙏 *పోషణ్ యాప్‌కు స్వాగతం (Welcome to Poshan Application)*\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
         "📋 *తక్షణ ఫలితం పొందడానికి 3 సులభ దశలు:*\n"
-        "క్రింద ఉన్న \"Start Assessment\" బటన్‌ను నొక్కి ఈ 3 సులభ దశలను పూర్తి చేయండి.\n\n"
-        "✅ *దశ 1: వివరాలు నమోదు చేయండి*\n"
-        " • పిల్లల వయస్సు, లింగం, ఎత్తు, బరువు మరియు MUAC నమోదు చేయండి.\n\n"
-        "✅ *దశ 2: ఎడమ చేయి ఫోటో తీయండి*\n"
-        " • పిల్లల ఎడమ చేయి స్పష్టంగా కనిపించేలా ఫోటో తీసి Submit నొక్కండి.\n\n"
-        "✅ *దశ 3: ఫలితం పొందండి*\n"
-        " • పిల్లల పోషక స్థితి మరియు ఆరోగ్య నివేదికను వెంటనే పొందండి.\n\n"
-        "📌 *గమనిక:* స్పష్టమైన ఫోటో కోసం పిల్లల ఎడమ చేయి మొత్తం కనిపించేలా మంచి పగటి వెలుతురులో ఫోటో తీయండి.\n\n"
+        "క్రింద ఉన్న \"Start Assessment\" బటన్ నొక్కి పూర్తి చేయండి.\n\n"
+        "✅ *దశ 1:* పిల్లల వయస్సు, లింగం, ఎత్తు, బరువు, MUAC నమోదు చేయండి.\n"
+        "✅ *దశ 2:* పిల్లల ఎడమ చేయి స్పష్టంగా కనిపించేలా ఫోటో తీసి సమర్పించండి.\n"
+        "✅ *దశ 3:* పిల్లల పోషక స్థితి మరియు ఆరోగ్య నివేదికను వెంటనే పొందండి.\n"
+        "📌 *గమనిక:* స్పష్టమైన ఫోటో కోసం పగటి వెలుతురులో చేయి మొత్తం కనిపించేలా ఫోటో తీయండి.\n\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
         "*(Instructions in English):*\n"
-        "Tap the \"Start Assessment\" button and complete these 3 simple steps:\n\n"
-        "✅ *Step 1: Enter Child Details*\n"
-        " • Enter the child's Age, Gender, Height, Weight, and MUAC.\n\n"
-        "✅ *Step 2: Take Left Arm Photo*\n"
-        " • Capture a clear photo of child's left arm and click Submit.\n\n"
-        "✅ *Step 3: Get Instant Result*\n"
-        " • View the child's nutrition screening result and triage instantly.\n\n"
-        "📌 *Note:* For best results, ensure the full left arm is visible and the photo is taken in clear daylight.\n\n"
+        "Tap \"Start Assessment\" button and complete 3 simple steps:\n\n"
+        "✅ *Step 1:* Enter child's Age, Gender, Height, Weight, and MUAC.\n"
+        "✅ *Step 2:* Capture a clear photo of child's left arm and submit.\n"
+        "✅ *Step 3:* View child's nutrition screening result instantly.\n"
+        "📌 *Note:* Ensure full arm is visible in clear daylight.\n\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
         "_Govt. of Andhra Pradesh • Poshan Application_"
     )
@@ -1686,11 +1672,11 @@ def format_whatsapp_error_text(error: Exception) -> str:
         "━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
         f"❌ *సమస్య (Issue):* {specific_hint_te}\n"
         f"   ({specific_hint_en})\n\n"
-        "💡 *సరిచేసే సూచనలు (How to Fix):*\n"
+        "💡 *సరిచేసే సూచనలు:*\n"
         f"1. {action_te}\n"
         "2. చేతికి ఉన్న గాజులు, దారాలు, బట్టలు తొలగించండి.\n"
         "3. కెమెరాను 30-50 సెం.మీ దూరంలో ఉంచి స్థిరంగా ఫోటో తీయండి.\n\n"
-        "*(Instructions in English):*\n"
+        "💡 *How to Fix (Instructions in English):*\n"
         f"1. {action_en}\n"
         "2. Remove any bangles, threads, or clothes covering arm.\n"
         "3. Hold camera 30-50 cm away and keep arm steady.\n"
@@ -1993,13 +1979,15 @@ async def _handle_meta_cloud_webhook(body: dict) -> dict:
                             recipient_phone=sender_phone,
                             flow_id=flow_id,
                             screen_id="DEMOGRAPHICS_SCREEN",
-                            header_text="ఫోటో మార్పిడి / Retake Photo",
+                            header_type="text",
+                            header_text="ఫోటో మార్పిడి (Retake Photo)",
                             body_text=(
-                                "📸 *కొత్త ఫోటో తీయండి / Retake Child Photo*\n"
+                                "📸 *కొత్త ఫోటో తీయండి (Retake Child Photo)*\n"
                                 "━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                                "పిల్లల కొలతలు మరియు వివరాలు ముందే నింపబడ్డాయి (Auto-filled).\n"
-                                "దయచేసి క్రింది బటన్ నొక్కి వివరాలు సమీక్షించి, కొత్త ఫోటోను సమర్పించండి.\n"
-                                "(Child details are auto-filled. Tap below to review and re-capture a fresh photo.)"
+                                "పిల్లల కొలతలు మరియు వివరాలు ముందే నింపబడ్డాయి.\n"
+                                "దయచేసి క్రింది బటన్ నొక్కి కొత్త ఫోటోను సమర్పించండి.\n\n"
+                                "*(Instructions in English):*\n"
+                                "Child details are auto-filled. Tap \"Retake Photo\" button below to capture and submit a new photo."
                             ),
                             cta_text="📸 Retake Photo",
                             initial_data=retake_data
@@ -2044,12 +2032,15 @@ async def _handle_meta_cloud_webhook(body: dict) -> dict:
                         recipient_phone=sender_phone,
                         flow_id=flow_id,
                         screen_id="DEMOGRAPHICS_SCREEN",
-                        header_text="ఫోటో మార్పిడి / Retake Photo",
+                        header_type="text",
+                        header_text="ఫోటో మార్పిడి (Retake Photo)",
                         body_text=(
-                            "📸 *మళ్లీ ప్రయత్నించండి / Retry Arm Photo*\n"
+                            "📸 *కొత్త ఫోటో తీయండి (Retake Child Photo)*\n"
                             "━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                            "సాంకేతిక సమస్య ఏర్పడింది. పిల్లల వివరాలు సేవ్ చేయబడ్డాయి. నేరుగా కొత్త ఫోటో తీయడానికి క్రింది బటన్ నొక్కండి.\n"
-                            "(Technical issue encountered. Tap below to try again and retake child left arm photo.)"
+                            "పిల్లల కొలతలు మరియు వివరాలు ముందే నింపబడ్డాయి.\n"
+                            "దయచేసి క్రింది బటన్ నొక్కి కొత్త ఫోటోను సమర్పించండి.\n\n"
+                            "*(Instructions in English):*\n"
+                            "Child details are auto-filled. Tap \"Retake Photo\" button below to capture and submit a new photo."
                         ),
                         cta_text="📸 Retake Photo",
                         initial_data=retake_data
@@ -2110,12 +2101,14 @@ async def _handle_meta_cloud_webhook(body: dict) -> dict:
                         recipient_phone=sender_phone,
                         flow_id=flow_id,
                         screen_id="DEMOGRAPHICS_SCREEN",
-                        header_text="ఫోటో మార్పిడి / Retake Photo",
+                        header_type="text",
+                        header_text="ఫోటో మార్పిడి (Retake Photo)",
                         body_text=(
-                            "📸 *కొత్త ఫోటో తీయండి / Retake Child Photo*\n"
+                            "📸 *కొత్త ఫోటో తీయండి (Retake Child Photo)*\n"
                             "━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                            "ఫోటో నాణ్యత సరిపోలలేదు. దయచేసి క్రింది బటన్ నొక్కి వివరాలతో కొత్త ఫోటోను సమర్పించండి.\n"
-                            "(Photo was not accepted. Tap below to try again and submit a fresh photo.)"
+                            "ఫోటో నాణ్యత సరిపోలలేదు. దయచేసి క్రింది బటన్ నొక్కి కొత్త ఫోటోను సమర్పించండి.\n\n"
+                            "*(Instructions in English):*\n"
+                            "Photo was not accepted. Tap \"Retake Photo\" button below to capture and submit a new photo."
                         ),
                         cta_text="📸 Retake Photo"
                     )
@@ -2125,12 +2118,14 @@ async def _handle_meta_cloud_webhook(body: dict) -> dict:
                         recipient_phone=sender_phone,
                         flow_id=flow_id,
                         screen_id="DEMOGRAPHICS_SCREEN",
-                        header_text="పోషణ్ తనిఖీ / child registration",
+                        header_type="text",
+                        header_text="పోషణ్ తనిఖీ (Child Registration)",
                         body_text=(
                             "✅ *తదుపరి పిల్లల తనిఖీ / Next Screening*\n"
                             "━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                            "ఈ పిల్లవాని నివేదిక విజయవంతంగా నమోదైంది. తదుపరి పిల్లల ఆరోగ్య తనిఖీని ప్రారంభించడానికి క్రింది బటన్ నొక్కండి.\n"
-                            "(Report saved successfully. Tap below to begin assessment for the next child.)"
+                            "ఈ పిల్లవాని నివేదిక విజయవంతంగా నమోదైంది. తదుపరి పిల్లల ఆరోగ్య తనిఖీని ప్రారంభించడానికి క్రింది బటన్ నొక్కండి.\n\n"
+                            "*(Instructions in English):*\n"
+                            "Report saved successfully. Tap \"New Assessment\" button below to begin assessment for the next child."
                         ),
                         cta_text="➕ New Assessment"
                     )
@@ -2140,6 +2135,23 @@ async def _handle_meta_cloud_webhook(body: dict) -> dict:
         except Exception as e:
             err_msg = format_whatsapp_error_text(e)
             send_meta_whatsapp_message(phone_number_id, sender_phone, err_msg)
+            if flow_id:
+                send_meta_whatsapp_flow_message(
+                    phone_number_id=phone_number_id,
+                    recipient_phone=sender_phone,
+                    flow_id=flow_id,
+                    screen_id="DEMOGRAPHICS_SCREEN",
+                    header_type="text",
+                    header_text="ఫోటో మార్పిడి (Retake Photo)",
+                    body_text=(
+                        "📸 *కొత్త ఫోటో తీయండి (Retake Child Photo)*\n"
+                        "━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                        "ఫోటో విశ్లేషణలో సమస్య ఏర్పడింది. దయచేసి క్రింది బటన్ నొక్కి కొత్త ఫోటోను సమర్పించండి.\n\n"
+                        "*(Instructions in English):*\n"
+                        "Issue encountered in photo analysis. Tap \"Retake Photo\" button below to capture and submit a new photo."
+                    ),
+                    cta_text="📸 Retake Photo"
+                )
             return {"status": "error", "detail": str(e)}
 
     # 6. Direct MUAC measurement text (e.g. 'MUAC 12.5')
